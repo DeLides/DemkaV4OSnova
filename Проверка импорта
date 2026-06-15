@@ -1,0 +1,6 @@
+SELECT COUNT(*) AS roles_count FROM roles;
+SELECT COUNT(*) AS users_count FROM users;
+SELECT COUNT(*) AS products_count FROM products;
+SELECT COUNT(*) AS orders_count FROM orders;
+SELECT COUNT(*) AS order_products_count FROM order_products;
+SELECT COUNT(*) AS pickup_points_count FROM pickup_points;
