@@ -1,0 +1,79 @@
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 1 AND p.article = 'PMEZMH';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 1 AND p.article = 'BPV4MM';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 1 FROM orders o, products p
+WHERE o.order_number = 2 AND p.article = 'JVL42J';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 1 FROM orders o, products p
+WHERE o.order_number = 2 AND p.article = 'F895RB';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 10 FROM orders o, products p
+WHERE o.order_number = 3 AND p.article = '3XBOTN';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 10 FROM orders o, products p
+WHERE o.order_number = 3 AND p.article = '3L7RCZ';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 5 FROM orders o, products p
+WHERE o.order_number = 4 AND p.article = 'S72AM3';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 4 FROM orders o, products p
+WHERE o.order_number = 4 AND p.article = '2G3280';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 5 AND p.article = 'MIO8YV';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 5 AND p.article = 'UER2QD';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 6 AND p.article = 'PMEZMH';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 6 AND p.article = 'BPV4MM';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 1 FROM orders o, products p
+WHERE o.order_number = 7 AND p.article = 'JVL42J';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 1 FROM orders o, products p
+WHERE o.order_number = 7 AND p.article = 'F895RB';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 10 FROM orders o, products p
+WHERE o.order_number = 8 AND p.article = '3XBOTN';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 10 FROM orders o, products p
+WHERE o.order_number = 8 AND p.article = '3L7RCZ';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 5 FROM orders o, products p
+WHERE o.order_number = 9 AND p.article = 'S72AM3';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 4 FROM orders o, products p
+WHERE o.order_number = 9 AND p.article = '2G3280';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 10 AND p.article = 'MIO8YV';
+
+INSERT INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 10 AND p.article = 'UER2QD';
