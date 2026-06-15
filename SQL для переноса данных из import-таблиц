@@ -1,0 +1,78 @@
+USE toy_shop_v4;
+
+INSERT IGNORE INTO roles (name)
+SELECT DISTINCT TRIM(role_name)
+FROM import_users
+WHERE role_name IS NOT NULL AND TRIM(role_name) <> '';
+
+INSERT IGNORE INTO roles (name) VALUES ('Гость');
+
+INSERT INTO users (role_id, full_name, login, password)
+SELECT
+    r.id,
+    TRIM(iu.full_name),
+    TRIM(iu.login),
+    TRIM(iu.password)
+FROM import_users iu
+JOIN roles r ON r.name = TRIM(iu.role_name);
+
+INSERT IGNORE INTO categories (name)
+SELECT DISTINCT TRIM(category_name)
+FROM import_products
+WHERE category_name IS NOT NULL AND TRIM(category_name) <> '';
+
+INSERT IGNORE INTO suppliers (name)
+SELECT DISTINCT TRIM(supplier_name)
+FROM import_products
+WHERE supplier_name IS NOT NULL AND TRIM(supplier_name) <> '';
+
+INSERT IGNORE INTO manufacturers (name)
+SELECT DISTINCT TRIM(manufacturer_name)
+FROM import_products
+WHERE manufacturer_name IS NOT NULL AND TRIM(manufacturer_name) <> '';
+
+INSERT IGNORE INTO units (name)
+SELECT DISTINCT TRIM(unit_name)
+FROM import_products
+WHERE unit_name IS NOT NULL AND TRIM(unit_name) <> '';
+
+INSERT INTO products (
+    article,
+    name,
+    unit_id,
+    price,
+    supplier_id,
+    manufacturer_id,
+    category_id,
+    discount,
+    quantity,
+    description,
+    image_path
+)
+SELECT
+    TRIM(ip.article),
+    TRIM(ip.name),
+    u.id,
+    CAST(REPLACE(ip.price, ',', '.') AS DECIMAL(10,2)),
+    s.id,
+    m.id,
+    c.id,
+    CAST(REPLACE(ip.discount, ',', '.') AS DECIMAL(5,2)),
+    CAST(ip.quantity AS UNSIGNED),
+    ip.description,
+    LOWER(TRIM(ip.image_path))
+FROM import_products ip
+LEFT JOIN units u ON u.name = TRIM(ip.unit_name)
+LEFT JOIN suppliers s ON s.name = TRIM(ip.supplier_name)
+LEFT JOIN manufacturers m ON m.name = TRIM(ip.manufacturer_name)
+LEFT JOIN categories c ON c.name = TRIM(ip.category_name);
+
+INSERT INTO pickup_points (address)
+SELECT TRIM(address)
+FROM import_pickup_points
+WHERE address IS NOT NULL AND TRIM(address) <> '';
+
+INSERT IGNORE INTO order_statuses (name)
+SELECT DISTINCT TRIM(status_name)
+FROM import_orders
+WHERE status_name IS NOT NULL AND TRIM(status_name) <> '';
