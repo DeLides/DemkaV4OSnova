@@ -1,0 +1,1067 @@
+Ниже собрал всё в одном месте: **что делать завтра по шагам**, **какой SQL вставлять**, **что куда импортировать**, **что закинуть на GitHub** и **что является минимумом для проходного балла**.
+
+Ориентируемся на **вариант 4 — ООО “МирИгрушек”, продажа игрушек**. В задании требуется создать БД в 3НФ, сделать PK/FK, ER-диаграмму PDF, импортировать данные и сохранить SQL-скрипт.  Также по ведомости отдельно оцениваются импорт, SQL-скрипт, ERD и создание таблиц/связей. 
+
+---
+
+# 0. Что тебе нужно сделать для проходного минимума
+
+Самый важный минимум:
+
+```text
+✅ Создать БД toy_shop_v4
+✅ Создать таблицы
+✅ Сделать первичные ключи и внешние ключи
+✅ Импортировать хотя бы часть данных
+✅ Перенести данные из import-таблиц в нормальные таблицы
+✅ Сделать ER-диаграмму в PDF
+✅ Экспортировать SQL-файл
+✅ Сделать algorithm.pdf
+✅ Сделать screenshots.docx
+✅ Загрузить всё в GitHub / выданный репозиторий
+```
+
+Если успеешь приложение — хорошо. Но если времени мало, сначала закрывай **БД + документы + GitHub**.
+
+---
+
+# 1. Создай папку проекта
+
+На рабочем столе создай папку:
+
+```text
+dem_exam_v4
+```
+
+Внутри сделай структуру:
+
+```text
+dem_exam_v4/
+│
+├── database/
+├── docs/
+├── resources/
+└── src/
+```
+
+Что это значит:
+
+```text
+database/ — SQL-файл и ER-диаграмма
+docs/ — алгоритм и скриншоты
+resources/ — картинки, иконки, picture.png
+src/ — исходный код приложения, если успеешь
+```
+
+---
+
+# 2. Скопируй ресурсы
+
+В `resources/` закинь:
+
+```text
+icon.ico
+icon.png
+picture.png
+```
+
+Внутри `resources/` создай папку:
+
+```text
+images/
+```
+
+И туда положи картинки товаров:
+
+```text
+1.jpg
+2.jpg
+3.jpg
+4.jpg
+5.jpg
+6.jpg
+7.jpg
+8.jpg
+9.jpg
+10.jpg
+```
+
+Если они называются `1.JPG`, `2.JPG`, лучше переименовать в нижний регистр:
+
+```text
+1.jpg
+2.jpg
+...
+```
+
+Потому что в таблице товаров путь к фото будет примерно `1.jpg`, `2.jpg`.
+
+---
+
+# 3. Создай БД в phpMyAdmin
+
+1. Запусти XAMPP.
+2. Включи **Apache** и **MySQL**.
+3. Открой:
+
+```text
+http://localhost/phpmyadmin
+```
+
+4. Создай базу данных:
+
+```text
+toy_shop_v4
+```
+
+5. Кодировка:
+
+```text
+utf8mb4_unicode_ci
+```
+
+---
+
+# 4. SQL для создания БД, таблиц и связей
+
+Открой базу `toy_shop_v4` → вкладка **SQL** → вставь код:
+
+```sql
+DROP DATABASE IF EXISTS toy_shop_v4;
+CREATE DATABASE toy_shop_v4
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE toy_shop_v4;
+
+CREATE TABLE roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    role_id INT NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    login VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE suppliers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE manufacturers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE units (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    article VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    unit_id INT,
+    price DECIMAL(10,2) NOT NULL DEFAULT 0,
+    supplier_id INT,
+    manufacturer_id INT,
+    category_id INT,
+    discount DECIMAL(5,2) NOT NULL DEFAULT 0,
+    quantity INT NOT NULL DEFAULT 0,
+    description TEXT,
+    image_path VARCHAR(255),
+    FOREIGN KEY (unit_id) REFERENCES units(id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+    FOREIGN KEY (manufacturer_id) REFERENCES manufacturers(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+CREATE TABLE order_statuses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE pickup_points (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    address VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_number INT NOT NULL UNIQUE,
+    pickup_point_id INT NULL,
+    client_id INT NULL,
+    receive_code VARCHAR(50),
+    status_id INT NULL,
+    order_date DATE NULL,
+    delivery_date DATE NULL,
+    FOREIGN KEY (pickup_point_id) REFERENCES pickup_points(id),
+    FOREIGN KEY (client_id) REFERENCES users(id),
+    FOREIGN KEY (status_id) REFERENCES order_statuses(id)
+);
+
+CREATE TABLE order_products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+CREATE TABLE import_products (
+    article VARCHAR(100),
+    name VARCHAR(255),
+    unit_name VARCHAR(50),
+    price VARCHAR(50),
+    supplier_name VARCHAR(150),
+    manufacturer_name VARCHAR(150),
+    category_name VARCHAR(150),
+    discount VARCHAR(50),
+    quantity VARCHAR(50),
+    description TEXT,
+    image_path VARCHAR(255)
+);
+
+CREATE TABLE import_users (
+    role_name VARCHAR(100),
+    full_name VARCHAR(255),
+    login VARCHAR(150),
+    password VARCHAR(100)
+);
+
+CREATE TABLE import_orders (
+    order_number VARCHAR(50),
+    order_items_raw TEXT,
+    order_date_raw VARCHAR(50),
+    delivery_date_raw VARCHAR(50),
+    pickup_point_raw VARCHAR(50),
+    client_full_name VARCHAR(255),
+    receive_code VARCHAR(50),
+    status_name VARCHAR(100)
+);
+
+CREATE TABLE import_pickup_points (
+    address VARCHAR(255)
+);
+```
+
+После выполнения слева должны появиться таблицы:
+
+```text
+roles
+users
+categories
+suppliers
+manufacturers
+units
+products
+order_statuses
+pickup_points
+orders
+order_products
+import_products
+import_users
+import_orders
+import_pickup_points
+```
+
+---
+
+# 5. Что такое import-таблицы
+
+`import_products`, `import_users`, `import_orders`, `import_pickup_points` — это **временные таблицы**.
+
+Они нужны, чтобы сначала загрузить туда сырые данные из Excel/CSV, а потом SQL-запросами перенести данные в нормальные таблицы.
+
+Логика такая:
+
+```text
+Excel / CSV
+↓
+import_products
+↓
+products, categories, suppliers, manufacturers, units
+```
+
+Таблицы `import_...` **не обязаны быть связаны линиями** в ERD. Это нормально. Они временные.
+
+---
+
+# 6. Сохрани Excel как CSV
+
+Открываешь каждый Excel-файл и сохраняешь как:
+
+```text
+CSV UTF-8
+```
+
+Получится примерно:
+
+```text
+products_import.csv
+users_import.csv
+orders_import.csv
+pickup_points_import.csv
+```
+
+Если первая строка содержит русские заголовки, например:
+
+```text
+Артикул;Наименование товара;Единица измерения;...
+```
+
+лучше удалить первую строку перед импортом.
+
+---
+
+# 7. Настройки импорта в phpMyAdmin
+
+Для всех CSV обычно ставь:
+
+```text
+Формат: CSV
+Разделитель полей: ;
+Значения полей обрамлены: "
+Символ экранирования: "
+Разделитель строк: auto
+```
+
+Если вылезает ошибка **“Несоответствие количества столбцов”**, открой CSV через Блокнот.
+
+Если там так:
+
+```text
+PMEZMH;Игровой набор;шт;...
+```
+
+разделитель `;`.
+
+Если так:
+
+```text
+PMEZMH,Игровой набор,шт,...
+```
+
+разделитель `,`.
+
+---
+
+# 8. Что писать в “Названия столбцов”
+
+## Для товаров → `import_products`
+
+Файл с товарами импортируешь в таблицу:
+
+```text
+import_products
+```
+
+В поле **Названия столбцов** вставь:
+
+```text
+article,name,unit_name,price,supplier_name,manufacturer_name,category_name,discount,quantity,description,image_path
+```
+
+---
+
+## Для пользователей → `import_users`
+
+Файл `user_import.xlsx` импортируешь в таблицу:
+
+```text
+import_users
+```
+
+В поле **Названия столбцов** вставь:
+
+```text
+role_name,full_name,login,password
+```
+
+---
+
+## Для заказов → `import_orders`
+
+Файл `Заказ_import.xlsx` импортируешь в таблицу:
+
+```text
+import_orders
+```
+
+В поле **Названия столбцов** вставь:
+
+```text
+order_number,order_items_raw,order_date_raw,delivery_date_raw,pickup_point_raw,client_full_name,receive_code,status_name
+```
+
+---
+
+## Для пунктов выдачи → `import_pickup_points`
+
+Файл `Пункты выдачи_import.xlsx` импортируешь в таблицу:
+
+```text
+import_pickup_points
+```
+
+В поле **Названия столбцов** вставь:
+
+```text
+address
+```
+
+---
+
+# 9. Проверь, что данные попали в import-таблицы
+
+После импорта выполни:
+
+```sql
+SELECT COUNT(*) AS import_products_count FROM import_products;
+SELECT COUNT(*) AS import_users_count FROM import_users;
+SELECT COUNT(*) AS import_orders_count FROM import_orders;
+SELECT COUNT(*) AS import_pickup_points_count FROM import_pickup_points;
+```
+
+Если `import_products` и `import_users` не нулевые — уже хорошо.
+
+---
+
+# 10. SQL для переноса пользователей и ролей
+
+Выполни:
+
+```sql
+INSERT IGNORE INTO roles (name)
+SELECT DISTINCT TRIM(role_name)
+FROM import_users
+WHERE role_name IS NOT NULL AND TRIM(role_name) <> '';
+
+INSERT IGNORE INTO roles (name) 
+VALUES ('Гость');
+
+INSERT IGNORE INTO users (role_id, full_name, login, password)
+SELECT
+    r.id,
+    TRIM(iu.full_name),
+    TRIM(iu.login),
+    TRIM(iu.password)
+FROM import_users iu
+JOIN roles r ON r.name = TRIM(iu.role_name);
+```
+
+Проверка:
+
+```sql
+SELECT * FROM roles;
+SELECT * FROM users;
+```
+
+Если пользователи не импортировались, добавь вручную:
+
+```sql
+INSERT IGNORE INTO roles (name) VALUES
+('Администратор'),
+('Менеджер'),
+('Авторизированный клиент'),
+('Гость');
+
+INSERT IGNORE INTO users (role_id, full_name, login, password) VALUES
+(1, 'Администратор системы', 'admin', 'admin'),
+(2, 'Менеджер системы', 'manager', 'manager'),
+(3, 'Клиент системы', 'client', 'client');
+```
+
+---
+
+# 11. SQL для переноса справочников товаров
+
+Выполни:
+
+```sql
+INSERT IGNORE INTO categories (name)
+SELECT DISTINCT TRIM(category_name)
+FROM import_products
+WHERE category_name IS NOT NULL AND TRIM(category_name) <> '';
+
+INSERT IGNORE INTO suppliers (name)
+SELECT DISTINCT TRIM(supplier_name)
+FROM import_products
+WHERE supplier_name IS NOT NULL AND TRIM(supplier_name) <> '';
+
+INSERT IGNORE INTO manufacturers (name)
+SELECT DISTINCT TRIM(manufacturer_name)
+FROM import_products
+WHERE manufacturer_name IS NOT NULL AND TRIM(manufacturer_name) <> '';
+
+INSERT IGNORE INTO units (name)
+SELECT DISTINCT TRIM(unit_name)
+FROM import_products
+WHERE unit_name IS NOT NULL AND TRIM(unit_name) <> '';
+```
+
+Проверка:
+
+```sql
+SELECT * FROM categories;
+SELECT * FROM suppliers;
+SELECT * FROM manufacturers;
+SELECT * FROM units;
+```
+
+---
+
+# 12. SQL для переноса товаров
+
+Выполни:
+
+```sql
+INSERT IGNORE INTO products (
+    article,
+    name,
+    unit_id,
+    price,
+    supplier_id,
+    manufacturer_id,
+    category_id,
+    discount,
+    quantity,
+    description,
+    image_path
+)
+SELECT
+    TRIM(ip.article),
+    TRIM(ip.name),
+    u.id,
+    CAST(REPLACE(ip.price, ',', '.') AS DECIMAL(10,2)),
+    s.id,
+    m.id,
+    c.id,
+    CAST(REPLACE(ip.discount, ',', '.') AS DECIMAL(5,2)),
+    CAST(ip.quantity AS UNSIGNED),
+    ip.description,
+    LOWER(TRIM(ip.image_path))
+FROM import_products ip
+LEFT JOIN units u ON u.name = TRIM(ip.unit_name)
+LEFT JOIN suppliers s ON s.name = TRIM(ip.supplier_name)
+LEFT JOIN manufacturers m ON m.name = TRIM(ip.manufacturer_name)
+LEFT JOIN categories c ON c.name = TRIM(ip.category_name);
+```
+
+Проверка:
+
+```sql
+SELECT * FROM products;
+SELECT COUNT(*) AS products_count FROM products;
+```
+
+Если товаров 10 — отлично.
+
+---
+
+# 13. SQL для пунктов выдачи
+
+Если `import_pickup_points` импортировалась:
+
+```sql
+INSERT INTO pickup_points (address)
+SELECT TRIM(address)
+FROM import_pickup_points
+WHERE address IS NOT NULL AND TRIM(address) <> '';
+```
+
+Проверка:
+
+```sql
+SELECT * FROM pickup_points;
+```
+
+Если не получилось, добавь вручную:
+
+```sql
+INSERT INTO pickup_points (address) VALUES
+('Пункт выдачи 1'),
+('Пункт выдачи 2'),
+('Пункт выдачи 3');
+```
+
+---
+
+# 14. SQL для статусов заказов
+
+```sql
+INSERT IGNORE INTO order_statuses (name)
+SELECT DISTINCT TRIM(status_name)
+FROM import_orders
+WHERE status_name IS NOT NULL AND TRIM(status_name) <> '';
+```
+
+Проверка:
+
+```sql
+SELECT * FROM order_statuses;
+```
+
+Если не получилось:
+
+```sql
+INSERT IGNORE INTO order_statuses (name) VALUES
+('Новый'),
+('Завершён'),
+('Отменён');
+```
+
+---
+
+# 15. SQL для переноса заказов
+
+Тут используем безопасный вариант с `pickup_point_id = NULL`, чтобы не было ошибки внешнего ключа.
+
+```sql
+INSERT IGNORE INTO orders (
+    order_number,
+    pickup_point_id,
+    client_id,
+    receive_code,
+    status_id,
+    order_date,
+    delivery_date
+)
+SELECT
+    CAST(io.order_number AS UNSIGNED),
+    NULL,
+    u.id,
+    TRIM(io.receive_code),
+    os.id,
+    CASE
+        WHEN io.order_date_raw REGEXP '^[0-9]+$'
+        THEN DATE_ADD('1899-12-30', INTERVAL CAST(io.order_date_raw AS UNSIGNED) DAY)
+        ELSE STR_TO_DATE(io.order_date_raw, '%d.%m.%Y')
+    END,
+    CASE
+        WHEN io.delivery_date_raw REGEXP '^[0-9]+$'
+        THEN DATE_ADD('1899-12-30', INTERVAL CAST(io.delivery_date_raw AS UNSIGNED) DAY)
+        ELSE STR_TO_DATE(io.delivery_date_raw, '%d.%m.%Y')
+    END
+FROM import_orders io
+LEFT JOIN order_statuses os ON os.name = TRIM(io.status_name)
+LEFT JOIN users u ON u.full_name = TRIM(io.client_full_name);
+```
+
+Проверка:
+
+```sql
+SELECT * FROM orders;
+SELECT COUNT(*) AS orders_count FROM orders;
+```
+
+Если заказы не импортировались, добавь один вручную:
+
+```sql
+INSERT IGNORE INTO order_statuses (name) VALUES ('Новый');
+
+INSERT INTO orders (
+    order_number,
+    pickup_point_id,
+    client_id,
+    receive_code,
+    status_id,
+    order_date,
+    delivery_date
+)
+VALUES (
+    1,
+    NULL,
+    1,
+    '123',
+    1,
+    '2026-06-01',
+    '2026-06-05'
+);
+```
+
+---
+
+# 16. SQL для состава заказов
+
+Это таблица `order_products`. Она показывает, какие товары входят в заказ.
+
+Выполни после того, как `orders` и `products` заполнены.
+
+```sql
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 1 AND p.article = 'PMEZMH';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 1 AND p.article = 'BPV4MM';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 1 FROM orders o, products p
+WHERE o.order_number = 2 AND p.article = 'JVL42J';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 1 FROM orders o, products p
+WHERE o.order_number = 2 AND p.article = 'F895RB';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 10 FROM orders o, products p
+WHERE o.order_number = 3 AND p.article = '3XBOTN';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 10 FROM orders o, products p
+WHERE o.order_number = 3 AND p.article = '3L7RCZ';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 5 FROM orders o, products p
+WHERE o.order_number = 4 AND p.article = 'S72AM3';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 4 FROM orders o, products p
+WHERE o.order_number = 4 AND p.article = '2G3280';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 5 AND p.article = 'MIO8YV';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 5 AND p.article = 'UER2QD';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 6 AND p.article = 'PMEZMH';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 6 AND p.article = 'BPV4MM';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 1 FROM orders o, products p
+WHERE o.order_number = 7 AND p.article = 'JVL42J';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 1 FROM orders o, products p
+WHERE o.order_number = 7 AND p.article = 'F895RB';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 10 FROM orders o, products p
+WHERE o.order_number = 8 AND p.article = '3XBOTN';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 10 FROM orders o, products p
+WHERE o.order_number = 8 AND p.article = '3L7RCZ';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 5 FROM orders o, products p
+WHERE o.order_number = 9 AND p.article = 'S72AM3';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 4 FROM orders o, products p
+WHERE o.order_number = 9 AND p.article = '2G3280';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 10 AND p.article = 'MIO8YV';
+
+INSERT IGNORE INTO order_products (order_id, product_id, quantity)
+SELECT o.id, p.id, 2 FROM orders o, products p
+WHERE o.order_number = 10 AND p.article = 'UER2QD';
+```
+
+Проверка:
+
+```sql
+SELECT * FROM order_products;
+SELECT COUNT(*) AS order_products_count FROM order_products;
+```
+
+Если `order_products` пустая — это не конец света. Но если она заполнена, база выглядит намного лучше.
+
+---
+
+# 17. Финальная проверка БД
+
+Выполни:
+
+```sql
+SELECT COUNT(*) AS roles_count FROM roles;
+SELECT COUNT(*) AS users_count FROM users;
+SELECT COUNT(*) AS products_count FROM products;
+SELECT COUNT(*) AS orders_count FROM orders;
+SELECT COUNT(*) AS order_products_count FROM order_products;
+SELECT COUNT(*) AS pickup_points_count FROM pickup_points;
+```
+
+Для хорошего результата желательно:
+
+```text
+roles — есть записи
+users — есть записи
+products — около 10
+orders — есть записи
+order_products — есть записи
+pickup_points — есть записи
+```
+
+---
+
+# 18. Сделай ER-диаграмму
+
+В phpMyAdmin:
+
+```text
+toy_shop_v4 → Designer / Дизайнер
+```
+
+Расставь так:
+
+```text
+products — центр
+
+categories → products
+suppliers → products
+manufacturers → products
+units → products
+
+roles → users
+
+users → orders
+pickup_points → orders
+order_statuses → orders
+
+orders → order_products
+products → order_products
+```
+
+`import_` таблицы можно отодвинуть в сторону или не включать в скрин.
+
+Сделай скрин → вставь в Word → сохрани как PDF:
+
+```text
+database/erd.pdf
+```
+
+---
+
+# 19. Экспортируй SQL
+
+В phpMyAdmin:
+
+```text
+toy_shop_v4 → Экспорт → SQL → Вперёд
+```
+
+Сохрани файл:
+
+```text
+database/toy_shop_v4.sql
+```
+
+---
+
+# 20. Сделай algorithm.pdf
+
+В Word или draw.io сделай блок-схему:
+
+```text
+Начало
+↓
+Запуск приложения
+↓
+Окно входа
+↓
+Выбор: гость или авторизация
+↓
+Если гость → просмотр товаров без поиска/сортировки/фильтрации
+↓
+Если авторизация → ввод логина и пароля
+↓
+Проверка данных в БД
+↓
+Данные верны?
+↓
+Нет → сообщение об ошибке
+↓
+Да → определение роли
+↓
+Клиент → просмотр товаров
+Менеджер → товары + поиск + сортировка + фильтрация + заказы
+Администратор → товары + CRUD товаров + CRUD заказов
+↓
+Выход
+↓
+Конец
+```
+
+Сохрани как:
+
+```text
+docs/algorithm.pdf
+```
+
+---
+
+# 21. Сделай screenshots.docx
+
+Вставь скрины:
+
+```text
+1. Созданная база toy_shop_v4.
+2. Список таблиц.
+3. Таблица products с данными.
+4. Таблица users с данными.
+5. Таблица orders с данными.
+6. Таблица order_products с данными.
+7. ER-диаграмма в Designer.
+8. Экспорт SQL-файла.
+9. Репозиторий GitHub с загруженными файлами.
+```
+
+Сохрани как:
+
+```text
+docs/screenshots.docx
+```
+
+---
+
+# 22. Что загрузить на GitHub
+
+Итоговая структура:
+
+```text
+dem_exam_v4/
+│
+├── database/
+│   ├── toy_shop_v4.sql
+│   └── erd.pdf
+│
+├── docs/
+│   ├── algorithm.pdf
+│   └── screenshots.docx
+│
+├── resources/
+│   ├── icon.ico
+│   ├── icon.png
+│   ├── picture.png
+│   └── images/
+│       ├── 1.jpg
+│       ├── 2.jpg
+│       ├── 3.jpg
+│       ├── 4.jpg
+│       ├── 5.jpg
+│       ├── 6.jpg
+│       ├── 7.jpg
+│       ├── 8.jpg
+│       ├── 9.jpg
+│       └── 10.jpg
+│
+└── src/
+    └── README.md
+```
+
+В `src/README.md` напиши:
+
+```text
+Модуль приложения реализован частично. Основной выполненный результат: база данных, импорт данных, ER-диаграмма, SQL-скрипт и документация.
+```
+
+Если успеешь сделать приложение — вместо README клади реальные файлы приложения.
+
+---
+
+# 23. Что точно достаточно делать первым
+
+Вот твой порядок без лишнего:
+
+```text
+1. Создать БД и таблицы SQL-кодом.
+2. Импортировать CSV в import-таблицы.
+3. Перенести users/roles.
+4. Перенести справочники товаров.
+5. Перенести products.
+6. Если успеваешь — pickup_points, orders, order_products.
+7. Сделать ERD.
+8. Экспортировать SQL.
+9. Сделать algorithm.pdf.
+10. Сделать screenshots.docx.
+11. Загрузить всё в GitHub.
+```
+
+---
+
+# 24. Что делать, если ошибка
+
+## Дубликат article
+
+Если ошибка:
+
+```text
+Duplicate entry ... for key article
+```
+
+Значит товары уже импортированы. Используй `INSERT IGNORE`, как в коде выше, или очисти:
+
+```sql
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE order_products;
+TRUNCATE TABLE products;
+SET FOREIGN_KEY_CHECKS = 1;
+```
+
+---
+
+## Ошибка pickup_point_id
+
+Если ошибка внешнего ключа по `pickup_point_id`, используй мой вариант заказов с:
+
+```sql
+NULL
+```
+
+вместо `pickup_point_id`.
+
+---
+
+## Ошибка CSV
+
+Если “несоответствие количества столбцов”:
+
+```text
+1. Проверь разделитель: ; или ,
+2. Удали первую строку с заголовками
+3. Проверь поле "Названия столбцов"
+```
+
+---
+
+# 25. Самое важное для проходного балла
+
+Не гонись за идеалом. Главное:
+
+```text
+БД создана
+таблицы есть
+связи есть
+данные хотя бы частично есть
+SQL экспортирован
+ERD есть
+документы есть
+GitHub загружен
+```
+
+Если это будет сделано, у тебя будет нормальная основа для проходного результата.
