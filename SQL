@@ -1,0 +1,128 @@
+DROP DATABASE IF EXISTS toy_shop_v4;
+CREATE DATABASE toy_shop_v4
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE toy_shop_v4;
+
+CREATE TABLE roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    role_id INT NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    login VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE suppliers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE manufacturers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE
+);
+
+CREATE TABLE units (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    article VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    unit_id INT,
+    price DECIMAL(10,2) NOT NULL DEFAULT 0,
+    supplier_id INT,
+    manufacturer_id INT,
+    category_id INT,
+    discount DECIMAL(5,2) NOT NULL DEFAULT 0,
+    quantity INT NOT NULL DEFAULT 0,
+    description TEXT,
+    image_path VARCHAR(255),
+    FOREIGN KEY (unit_id) REFERENCES units(id),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+    FOREIGN KEY (manufacturer_id) REFERENCES manufacturers(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+CREATE TABLE order_statuses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE pickup_points (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    address VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_number INT NOT NULL UNIQUE,
+    pickup_point_id INT,
+    client_id INT,
+    receive_code VARCHAR(50),
+    status_id INT,
+    order_date DATE NULL,
+    delivery_date DATE NULL,
+    FOREIGN KEY (pickup_point_id) REFERENCES pickup_points(id),
+    FOREIGN KEY (client_id) REFERENCES users(id),
+    FOREIGN KEY (status_id) REFERENCES order_statuses(id)
+);
+
+CREATE TABLE order_products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+CREATE TABLE import_products (
+    article VARCHAR(100),
+    name VARCHAR(255),
+    unit_name VARCHAR(50),
+    price VARCHAR(50),
+    supplier_name VARCHAR(150),
+    manufacturer_name VARCHAR(150),
+    category_name VARCHAR(150),
+    discount VARCHAR(50),
+    quantity VARCHAR(50),
+    description TEXT,
+    image_path VARCHAR(255)
+);
+
+CREATE TABLE import_users (
+    role_name VARCHAR(100),
+    full_name VARCHAR(255),
+    login VARCHAR(150),
+    password VARCHAR(100)
+);
+
+CREATE TABLE import_orders (
+    order_number VARCHAR(50),
+    order_items_raw TEXT,
+    order_date_raw VARCHAR(50),
+    delivery_date_raw VARCHAR(50),
+    pickup_point_raw VARCHAR(50),
+    client_full_name VARCHAR(255),
+    receive_code VARCHAR(50),
+    status_name VARCHAR(100)
+);
+
+CREATE TABLE import_pickup_points (
+    address VARCHAR(255)
+);
