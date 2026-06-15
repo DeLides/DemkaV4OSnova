@@ -1,0 +1,29 @@
+INSERT INTO orders (
+    order_number,
+    pickup_point_id,
+    client_id,
+    receive_code,
+    status_id,
+    order_date,
+    delivery_date
+)
+SELECT
+    CAST(io.order_number AS UNSIGNED),
+    CAST(io.pickup_point_raw AS UNSIGNED),
+    u.id,
+    TRIM(io.receive_code),
+    os.id,
+    CASE
+        WHEN io.order_date_raw REGEXP '^[0-9]+$'
+        THEN DATE_ADD('1899-12-30', INTERVAL CAST(io.order_date_raw AS UNSIGNED) DAY)
+        ELSE STR_TO_DATE(io.order_date_raw, '%d.%m.%Y')
+    END,
+    CASE
+        WHEN io.delivery_date_raw REGEXP '^[0-9]+$'
+        THEN DATE_ADD('1899-12-30', INTERVAL CAST(io.delivery_date_raw AS UNSIGNED) DAY)
+        ELSE STR_TO_DATE(io.delivery_date_raw, '%d.%m.%Y')
+    END
+FROM import_orders io
+LEFT JOIN order_statuses os ON os.name = TRIM(io.status_name)
+LEFT JOIN users u ON u.full_name = TRIM(io.client_full_name)
+LEFT JOIN roles r ON r.id = u.role_id AND r.name = 'Авторизированный клиент';
